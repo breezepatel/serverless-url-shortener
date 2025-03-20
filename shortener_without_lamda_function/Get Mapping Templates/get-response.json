@@ -1,0 +1,4 @@
+#set($DDBResponse = $input.path('$'))
+#if ($DDBResponse.toString().contains("Item"))
+#set($context.responseOverride.header.Location = $DDBResponse.Item.longURL.S)
+#end

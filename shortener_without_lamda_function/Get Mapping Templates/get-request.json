@@ -1,0 +1,8 @@
+{
+    "Key": {
+      "shortId": {
+        "S": "$input.params().path.shortId"
+      }
+    },
+    "TableName": "URL-Shortener"
+  }
