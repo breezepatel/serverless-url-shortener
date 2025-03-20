@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 10px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>URL Shortener</h1>
+    <form id="shortenForm">
+        <div class="form-group">
+            <label for="longURL">Long URL:</label>
+            <input type="url" id="longURL" name="longURL" placeholder="Enter the long URL" required>
+        </div>
+        <div class="form-group">
+            <label for="owner">Owner:</label>
+            <input type="text" id="owner" name="owner" placeholder="Enter your name" required>
+        </div>
+        <button type="submit">Shorten URL</button>
+    </form>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script>
+    function generateRandomString(length = 6) {
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return result;
+    }
+
+    async function createShortURL(longURL, owner, retryCount = 0) {
+        const maxRetries = 5; // Retry up to 5 times
+        const shortURL = generateRandomString();
+
+        const requestBody = {
+            shortURL: shortURL,
+            longURL: longURL,
+            owner: owner
+        };
+
+        try {
+            const response = await fetch('https://k63dfg8pb6.execute-api.ca-central-1.amazonaws.com/dev/direct-ddb', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <strong>Short URL Created:</strong> 
+                    <a href="https://k63dfg8pb6.execute-api.ca-central-1.amazonaws.com/dev/direct-ddb/${shortURL}" target="_blank">${shortURL}</a>
+                `;
+            } else {
+                throw new Error('Failed to insert data into DynamoDB');
+            }
+        } catch (error) {
+            console.error(`Attempt ${retryCount + 1}: ${error.message}`);
+
+            if (retryCount < maxRetries) {
+                document.getElementById('result').innerHTML = `Retrying... Attempt ${retryCount + 2} of ${maxRetries}`;
+                return createShortURL(longURL, owner, retryCount + 1);
+            } else {
+                document.getElementById('result').innerHTML = `Error: Failed to create short URL after ${maxRetries} attempts.`;
+            }
+        }
+    }
+
+    document.getElementById('shortenForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const longURL = document.getElementById('longURL').value;
+        const owner = document.getElementById('owner').value;
+
+        document.getElementById('result').innerHTML = 'Generating short URL...';
+
+        createShortURL(longURL, owner);
+    });
+</script>
+
+</body>
+</html>
