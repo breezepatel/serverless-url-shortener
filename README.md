@@ -256,12 +256,6 @@ Combining Amazon S3, API Gateway, and DynamoDB allows seamless operation without
 
 ---
 
-## Code & Resources
-
-All code used in this project is available in the [GitHub repository](#https://github.com/breezepatel/serverless-url-shortener) *(replace with actual repo link)*.
-
----
-
 Happy coding! 🚀
 
 ```
